@@ -3,8 +3,6 @@
 
 namespace think\middleware\throttle;
 
-use Psr\SimpleCache\CacheInterface;
-
 /**
  * 计数器滑动窗口算法
  * Class CouterSlider
@@ -12,7 +10,7 @@ use Psr\SimpleCache\CacheInterface;
  */
 class CounterSlider extends ThrottleAbstract
 {
-    public function allowRequest(string $key, float $micronow, int $max_requests, int $duration, CacheInterface $cache): bool
+    public function allowRequest(string $key, float $micronow, int $max_requests, int $duration, $cache)
     {
         $history = $cache->get($key, []);
         $now = (int) $micronow;

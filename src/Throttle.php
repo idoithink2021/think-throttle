@@ -65,7 +65,7 @@ class Throttle
     public function __construct(Cache $cache, Config $config)
     {
         $this->cache  = $cache;
-        $this->config = array_merge(static::$default_config, $config->get('throttle', []));
+        $this->config = array_merge(static::$default_config, $config->get('throttle.', []));
     }
 
     /**

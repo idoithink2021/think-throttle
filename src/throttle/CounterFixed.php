@@ -4,35 +4,26 @@
 namespace think\middleware\throttle;
 
 /**
- * 计数器滑动窗口算法
- * Class CouterSlider
+ * 计数器固定窗口算法
+ * Class CounterFixed
  * @package think\middleware\throttle
  */
-class CounterSlider extends ThrottleAbstract
+class CounterFixed extends ThrottleAbstract
 {
+
     public function allowRequest(string $key, float $micronow, int $max_requests, int $duration, $cache)
     {
-        $history = $cache->get($key, []);
+        $cur_requests = $cache->get($key, 0);
         $now = (int) $micronow;
-        // 移除过期的请求的记录
-        $history = array_values(array_filter($history, function ($val) use ($now, $duration) {
-            return $val >= $now - $duration;
-        }));
+        $wait_reset_seconds = $duration - $now % $duration;     // 距离下次重置还有n秒时间
+        $this->wait_seconds = $wait_reset_seconds % $duration  + 1;
+        $this->cur_requests = $cur_requests;
 
-        $this->cur_requests = count($history);
-        if ($this->cur_requests < $max_requests) {
-            // 允许访问
-            $history[] = $now;
-            $cache->set($key, $history, $duration);
+        if ($cur_requests < $max_requests) {   // 允许访问
+            $cache->set($key, $this->cur_requests + 1, $wait_reset_seconds);
             return true;
-        }
-
-        if ($history) {
-            $wait_seconds = $duration - ($now - $history[0]) + 1;
-            $this->wait_seconds = $wait_seconds > 0 ? $wait_seconds : 0;
         }
 
         return false;
     }
-
 }
